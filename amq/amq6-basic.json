@@ -3,16 +3,16 @@
     "apiVersion": "v1",
     "metadata": {
         "annotations": {
-            "description": "Application template for ActiveMQ brokers."
+            "description": "Application template for A-MQ broker(s).  This template is without SSL support."
         },
-        "name": "amq6"
+        "name": "amq6-basic"
     },
     "labels": {
-        "template": "amq6"
+        "template": "amq6-basic"
     },
     "parameters": [
         {
-            "description": "ActiveMQ Release version, e.g. 6.2, etc.",
+            "description": "A-MQ Release version, e.g. 6.2, etc.",
             "name": "AMQ_RELEASE",
             "value": "6.2"
         },
@@ -20,6 +20,26 @@
             "description": "The name for the application.",
             "name": "APPLICATION_NAME",
             "value": "broker"
+        },
+        {
+            "description": "Protocol to configure.  Only openwire is supported by EAP.  Protocols amqp, mqtt and stomp are not supported by EAP.",
+            "name": "MQ_PROTOCOL",
+            "value": "openwire,amqp,mqtt,stomp"
+        },
+        {
+            "description": "Queue names",
+            "name": "MQ_QUEUES",
+            "value": ""
+        },
+        {
+            "description": "Topic names",
+            "name": "MQ_TOPICS",
+            "value": ""
+        },
+        {
+            "description": "A-MQ storage limit",
+            "name": "AMQ_STORAGE_USAGE_LIMIT",
+            "value": "100 gb"
         },
         {
             "description": "Broker user name",
@@ -34,35 +54,22 @@
             "generate": "expression"
         },
         {
-            "description": "Protocol to configure.  Only openwire is supported by EAP.  amqp, amqp+ssl, mqtt, stomp, stomp+ssl, and ssl are not supported by EAP",
-            "name": "MQ_PROTOCOL",
-            "value": "openwire"
+            "description": "A-MQ admin user",
+            "name": "AMQ_ADMIN_USERNAME",
+            "from": "user[a-zA-Z0-9]{3}",
+            "generate": "expression"
         },
         {
-            "description": "Queue names",
-            "name": "MQ_QUEUES",
-            "value": ""
+            "description": "A-MQ admin password",
+            "name": "AMQ_ADMIN_PASSWORD",
+            "from": "[a-zA-Z0-9]{8}",
+            "generate": "expression"
         },
         {
-            "description": "Topic names",
-            "name": "MQ_TOPICS",
-            "value": ""
-        },
-		{
-			"description": "Name of a secret containing SSL related files",
-			"name": "AMQ_SECRET",
-			"value": ""
-		},
-		{
-			"description": "SSL trust store filename",
-			"name": "AMQ_TRUST_STORE",
-			"value": "broker.ts"
-		},
-		{
-			"description": "SSL key store filename",
-			"name": "AMQ_KEY_STORE",
-			"value": "broker.ks"
-		}	
+            "description": "Namespace in which the ImageStreams for Red Hat Middleware images are installed. These ImageStreams are normally installed in the openshift namespace. You should only need to modify this if you've installed the ImageStreams in a different namespace/project.",
+            "name": "IMAGE_STREAM_NAMESPACE",
+            "value": "openshift"
+        }
     ],
     "objects": [
         {
@@ -85,31 +92,7 @@
                     "application": "${APPLICATION_NAME}"
                 },
                 "annotations": {
-                    "description": "The broker's amqp port."
-                }
-            }
-        },
-        {
-            "kind": "Service",
-            "apiVersion": "v1",
-            "spec": {
-                "ports": [
-                    {
-                        "port": 5671,
-                        "targetPort": 5671
-                    }
-                ],
-                "selector": {
-                    "deploymentConfig": "${APPLICATION_NAME}-amq"
-                }
-            },
-            "metadata": {
-                "name": "${APPLICATION_NAME}-amq-amqp-ssl",
-                "labels": {
-                    "application": "${APPLICATION_NAME}"
-                },
-                "annotations": {
-                    "description": "The broker's amqp ssl port."
+                    "description": "The broker's AMQP port."
                 }
             }
         },
@@ -133,7 +116,7 @@
                     "application": "${APPLICATION_NAME}"
                 },
                 "annotations": {
-                    "description": "The broker's mqtt port."
+                    "description": "The broker's MQTT port."
                 }
             }
         },
@@ -157,31 +140,7 @@
                     "application": "${APPLICATION_NAME}"
                 },
                 "annotations": {
-                    "description": "The broker's stomp port."
-                }
-            }
-        },
-        {
-            "kind": "Service",
-            "apiVersion": "v1",
-            "spec": {
-                "ports": [
-                    {
-                        "port": 61612,
-                        "targetPort": 61612
-                    }
-                ],
-                "selector": {
-                    "deploymentConfig": "${APPLICATION_NAME}-amq"
-                }
-            },
-            "metadata": {
-                "name": "${APPLICATION_NAME}-amq-stomp-ssl",
-                "labels": {
-                    "application": "${APPLICATION_NAME}"
-                },
-                "annotations": {
-                    "description": "The broker's stomp ssl port."
+                    "description": "The broker's STOMP port."
                 }
             }
         },
@@ -205,31 +164,7 @@
                     "application": "${APPLICATION_NAME}"
                 },
                 "annotations": {
-                    "description": "The broker's tcp (openwire) port."
-                }
-            }
-        },
-        {
-            "kind": "Service",
-            "apiVersion": "v1",
-            "spec": {
-                "ports": [
-                    {
-                        "port": 61617,
-                        "targetPort": 61617
-                    }
-                ],
-                "selector": {
-                    "deploymentConfig": "${APPLICATION_NAME}-amq"
-                }
-            },
-            "metadata": {
-                "name": "${APPLICATION_NAME}-amq-tcp-ssl",
-                "labels": {
-                    "application": "${APPLICATION_NAME}"
-                },
-                "annotations": {
-                    "description": "The broker's tcp ssl (openwire) port."
+                    "description": "The broker's OpenWire port."
                 }
             }
         },
@@ -256,6 +191,7 @@
                             ],
                             "from": {
                                 "kind": "ImageStreamTag",
+                                "namespace": "${IMAGE_STREAM_NAMESPACE}",
                                 "name": "jboss-amq-6:${AMQ_RELEASE}"
                             }
                         }
@@ -274,46 +210,39 @@
                         }
                     },
                     "spec": {
-						"serviceAccount": "amq-service-account",
                         "containers": [
                             {
                                 "name": "${APPLICATION_NAME}-amq",
-                                "image": "registry.access.redhat.com/jboss-amq-6/amq-openshift:${AMQ_RELEASE}",
+                                "image": "jboss-amq-6",
                                 "imagePullPolicy": "Always",
+                                "readinessProbe": {
+                                    "exec": {
+                                        "command": [
+                                            "/bin/bash",
+                                            "-c",
+                                            "curl -s -L -u ${AMQ_ADMIN_USERNAME}:${AMQ_ADMIN_PASSWORD} 'http://localhost:8161/hawtio/jolokia/read/org.apache.activemq:type=Broker,brokerName=*,service=Health/CurrentStatus' | grep -q '\"CurrentStatus\" *: *\"Good\"'"
+                                        ]
+                                    }
+                                },
                                 "ports": [
                                     {
-                                        "name": "${APPLICATION_NAME}-amq-amqp",
+                                        "name": "amqp",
                                         "containerPort": 5672,
                                         "protocol": "TCP"
                                     },
                                     {
-                                        "name": "${APPLICATION_NAME}-amq-amqp-ssl",
-                                        "containerPort": 5671,
-                                        "protocol": "TCP"
-                                    },
-                                    {
-                                        "name": "${APPLICATION_NAME}-amq-mqtt",
+                                        "name": "mqtt",
                                         "containerPort": 1883,
                                         "protocol": "TCP"
                                     },
                                     {
-                                        "name": "${APPLICATION_NAME}-amq-stomp",
+                                        "name": "stomp",
                                         "containerPort": 61613,
                                         "protocol": "TCP"
                                     },
                                     {
-                                        "name": "${APPLICATION_NAME}-amq-stomp-ssl",
-                                        "containerPort": 61612,
-                                        "protocol": "TCP"
-                                    },
-                                    {
-                                        "name": "${APPLICATION_NAME}-amq-tcp",
+                                        "name": "tcp",
                                         "containerPort": 61616,
-                                        "protocol": "TCP"
-                                    },
-                                    {
-                                        "name": "${APPLICATION_NAME}-amq-tcp-ssl",
-                                        "containerPort": 61617,
                                         "protocol": "TCP"
                                     }
                                 ],
@@ -327,7 +256,7 @@
                                         "value": "${MQ_PASSWORD}"
                                     },
                                     {
-                                        "name": "AMQ_PROTOCOLS",
+                                        "name": "AMQ_TRANSPORTS",
                                         "value": "${MQ_PROTOCOL}"
                                     },
                                     {
@@ -338,32 +267,25 @@
                                         "name": "AMQ_TOPICS",
                                         "value": "${MQ_TOPICS}"
                                     },
-									{
-										"name": "AMQ_TRUST_STORE",
-										"value": "${AMQ_TRUST_STORE}"
-									},
-									{
-										"name": "AMQ_KEY_STORE",
-										"value": "${AMQ_KEY_STORE}"
-									}
-                                ],
-								"volumeMounts": [
-									{
-										"name": "broker-secret-volume",
-										"readOnly": true,
-										"mountPath": "/etc/amq-secret-volume"
-									}
-								]
+                                    {
+                                        "name": "AMQ_STORAGE_USAGE_LIMIT",
+                                        "value": "${AMQ_STORAGE_USAGE_LIMIT}"
+                                    },
+                                    {
+                                        "name": "AMQ_ADMIN_USERNAME",
+                                        "value": "${AMQ_ADMIN_USERNAME}"
+                                    },
+                                    {
+                                        "name": "AMQ_ADMIN_PASSWORD",
+                                        "value": "${AMQ_ADMIN_PASSWORD}"
+                                    },
+                                    {
+                                        "name": "AMQ_MESH_SERVICE_NAME",
+                                        "value": "${APPLICATION_NAME}-amq-tcp"
+                                    }
+                                ]
                             }
-                        ],
-						"volumes": [
-							{
-          						"name": "broker-secret-volume",
-          						"secret": {
-            						"secretName": "${AMQ_SECRET}"
-          						}
-        					}
-      					]
+                        ]
                     }
                 }
             }
