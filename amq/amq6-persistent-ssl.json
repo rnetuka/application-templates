@@ -37,11 +37,6 @@
             "value": ""
         },
         {
-            "description": "A-MQ storage limit",
-            "name": "AMQ_STORAGE_USAGE_LIMIT",
-            "value": "100 gb"
-        },
-        {
             "description": "Size of persistent storage for database volume.",
             "name": "VOLUME_CAPACITY",
             "value": "512Mi"
@@ -81,19 +76,24 @@
             "value": "broker.ts"
         },
         {
+            "description": "Password for accessing trust store",
+            "name": "AMQ_TRUSTSTORE_PASSWORD",
+            "value": ""
+        },
+        {
             "description": "SSL key store filename",
             "name": "AMQ_KEYSTORE",
             "value": "broker.ks"
         },
         {
-            "description": "Password for accessing trust store",
-            "name": "AMQ_TRUSTSTORE_PASSWORD",
-            "value": "password"
-        },
-        {
             "description": "Password for accessing key store",
             "name": "AMQ_KEYSTORE_PASSWORD",
-            "value": "password"
+            "value": ""
+        },
+        {
+            "description": "A-MQ storage limit",
+            "name": "AMQ_STORAGE_USAGE_LIMIT",
+            "value": "100 gb"
         },
         {
             "description": "Namespace in which the ImageStreams for Red Hat Middleware images are installed. These ImageStreams are normally installed in the openshift namespace. You should only need to modify this if you've installed the ImageStreams in a different namespace/project.",
@@ -426,10 +426,6 @@
                                         "value": "${MQ_TOPICS}"
                                     },
                                     {
-                                        "name": "AMQ_STORAGE_USAGE_LIMIT",
-                                        "value": "${AMQ_STORAGE_USAGE_LIMIT}"
-                                    },
-                                    {
                                         "name": "AMQ_ADMIN_USERNAME",
                                         "value": "${AMQ_ADMIN_USERNAME}"
                                     },
@@ -446,16 +442,20 @@
                                         "value": "${AMQ_TRUSTSTORE}"
                                     },
                                     {
-                                        "name": "AMQ_KEYSTORE",
-                                        "value": "${AMQ_KEYSTORE}"
-                                    },
-                                    {
                                         "name": "AMQ_TRUSTSTORE_PASSWORD",
                                         "value": "${AMQ_TRUSTSTORE_PASSWORD}"
                                     },
                                     {
+                                        "name": "AMQ_KEYSTORE",
+                                        "value": "${AMQ_KEYSTORE}"
+                                    },
+                                    {
                                         "name": "AMQ_KEYSTORE_PASSWORD",
                                         "value": "${AMQ_KEYSTORE_PASSWORD}"
+                                    },
+                                    {
+                                        "name": "AMQ_STORAGE_USAGE_LIMIT",
+                                        "value": "${AMQ_STORAGE_USAGE_LIMIT}"
                                     }
                                 ]
                             }
