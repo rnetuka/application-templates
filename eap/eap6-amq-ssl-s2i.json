@@ -1,0 +1,682 @@
+{
+    "kind": "Template",
+    "apiVersion": "v1",
+    "metadata": {
+        "annotations": {
+            "description": "Application template for EAP 6 A-MQ applications built using STI.",
+            "iconClass": "icon-jboss"
+        },
+        "name": "eap6-amq-sti"
+    },
+    "labels": {
+        "template": "eap6-amq-sti"
+    },
+    "parameters": [
+        {
+            "description": "EAP Release version, e.g. 6.4, etc.",
+            "name": "EAP_RELEASE",
+            "value": "6.4",
+            "required": "Yes"
+        },
+        {
+            "description": "A-MQ Release version, e.g. 6.2, etc.",
+            "name": "AMQ_RELEASE",
+            "value": "6.2",
+            "required": "Yes"
+        },
+        {
+            "description": "The name for the application.",
+            "name": "APPLICATION_NAME",
+            "value": "eap-app",
+            "required": "Yes"
+        },
+        {
+            "description": "Custom hostname for service routes.  Leave blank for default hostname, e.g.: <application-name>.<project>.<default-domain-suffix>",
+            "name": "APPLICATION_DOMAIN",
+            "value": "",
+            "required": "No"
+        },
+        {
+            "description": "Git source URI for application",
+            "name": "SOURCE_REPOSITORY_URL",
+            "required": "Yes"
+        },
+        {
+            "description": "Git branch/tag reference",
+            "name": "SOURCE_REPOSITORY_REF",
+            "value": "master",
+            "required": "No"
+        },
+        {
+            "description": "Path within Git project to build; empty for root project directory.",
+            "name": "CONTEXT_DIR",
+            "value": "",
+            "required": "No"
+        },
+        {
+            "description": "JNDI name for connection factory used by applications to connect to the broker, e.g. java:/ConnectionFactory",
+            "name": "MQ_JNDI",
+            "value": "java:/ConnectionFactory",
+            "required": "No"
+        },
+        {
+            "description": "Queue names",
+            "name": "MQ_QUEUES",
+            "value": "",
+            "required": "No"
+        },
+        {
+            "description": "Topic names",
+            "name": "MQ_TOPICS",
+            "value": "",
+            "required": "No"
+        },
+        {
+            "description": "Name of a secret containingSSL related files used by the message broker",
+            "name": "MQ_SECRET",
+            "value": "amq-app-secret",
+            "required": "Yes"
+        },
+        {
+            "description": "Filename of SSL keystore used by the message broker",
+            "name": "MQ_KEYSTORE",
+            "value": "",
+            "required": "Yes"
+        },
+        {
+            "description": "Password for SSL keystore used by the message broker",
+            "name": "MQ_KEYSTORE_PASSWORD",
+            "value": "",
+            "required": "Yes"
+        },
+        {
+            "description": "Filename of SSL truststore used by the message broker",
+            "name": "MQ_TRUSTSTORE",
+            "value": "",
+            "required": "Yes"
+        },
+        {
+            "description": "Password for SSL keystore used by the message broker",
+            "name": "MQ_TRUSTSTORE_PASSWORD",
+            "value": "",
+            "required": "Yes"
+        },
+        {
+            "description": "Filename of SSL keystore used by messaging resource adapter",
+            "name": "MQ_RA_KEYSTORE",
+            "value": "",
+            "required": "Yes"
+        },
+        {
+            "description": "Password for SSL keystore used by messaging resource adapter",
+            "name": "MQ_RA_KEYSTORE_PASSWORD",
+            "value": "",
+            "required": "Yes"
+        },
+        {
+            "description": "Filename of SSL truststore used by messaging resource adapter",
+            "name": "MQ_RA_TRUSTSTORE",
+            "value": "",
+            "required": "Yes"
+        },
+        {
+            "description": "The name of the secret containing the keystore file",
+            "name": "EAP_HTTPS_SECRET",
+            "value": "eap-app-secret",
+            "required": "No"
+        },
+        {
+            "description": "The name of the keystore file within the secret",
+            "name": "EAP_HTTPS_KEYSTORE",
+            "value": "keystore.jks",
+            "required": "No"
+        },
+        {
+            "description": "The name associated with the server certificate",
+            "name": "EAP_HTTPS_NAME",
+            "value": "",
+            "required": "No"
+        },
+        {
+            "description": "The password for the keystore and certificate",
+            "name": "EAP_HTTPS_PASSWORD",
+            "value": "",
+            "required": "No"
+        },
+        {
+            "description": "Broker user name",
+            "name": "MQ_USERNAME",
+            "from": "user[a-zA-Z0-9]{3}",
+            "generate": "expression",
+            "required": "No"
+        },
+        {
+            "description": "Broker user password",
+            "name": "MQ_PASSWORD",
+            "from": "[a-zA-Z0-9]{8}",
+            "generate": "expression",
+            "required": "No"
+        },
+        {
+            "description": "ActiveMQ Admin User",
+            "name": "AMQ_ADMIN_USERNAME",
+            "from": "user[a-zA-Z0-9]{3}",
+            "generate": "expression",
+            "required": "Yes"
+        },
+        {
+            "description": "ActiveMQ Admin Password",
+            "name": "AMQ_ADMIN_PASSWORD",
+            "from": "[a-zA-Z0-9]{8}",
+            "generate": "expression",
+            "required": "Yes"
+        },
+        {
+            "description": "GitHub trigger secret",
+            "name": "GITHUB_WEBHOOK_SECRET",
+            "from": "[a-zA-Z0-9]{8}",
+            "generate": "expression",
+            "required": "Yes"
+        },
+        {
+            "description": "Generic build trigger secret",
+            "name": "GENERIC_WEBHOOK_SECRET",
+            "from": "[a-zA-Z0-9]{8}",
+            "generate": "expression",
+            "required": "Yes"
+        },
+        {
+            "description": "Namespace in which the ImageStreams for Red Hat Middleware images are installed. These ImageStreams are normally installed in the openshift namespace. You should only need to modify this if you've installed the ImageStreams in a different namespace/project.",
+            "name": "IMAGE_STREAM_NAMESPACE",
+            "value": "openshift",
+            "required": "Yes"
+        }
+    ],
+    "objects": [
+        {
+            "kind": "Service",
+            "apiVersion": "v1",
+            "spec": {
+                "ports": [
+                    {
+                        "port": 8080,
+                        "targetPort": 8080
+                    }
+                ],
+                "selector": {
+                    "deploymentConfig": "${APPLICATION_NAME}"
+                }
+            },
+            "metadata": {
+                "name": "${APPLICATION_NAME}",
+                "labels": {
+                    "application": "${APPLICATION_NAME}"
+                },
+                "annotations": {
+                    "description": "The web server's http port."
+                }
+            }
+        },
+        {
+            "kind": "Service",
+            "apiVersion": "v1",
+            "spec": {
+                "ports": [
+                    {
+                        "port": 8443,
+                        "targetPort": 8443
+                    }
+                ],
+                "selector": {
+                    "deploymentConfig": "${APPLICATION_NAME}"
+                }
+            },
+            "metadata": {
+                "name": "secure-${APPLICATION_NAME}",
+                "labels": {
+                    "application": "${APPLICATION_NAME}"
+                },
+                "annotations": {
+                    "description": "The web server's https port."
+                }
+            }
+        },
+        {
+            "kind": "Service",
+            "apiVersion": "v1",
+            "spec": {
+                "ports": [
+                    {
+                        "port": 61617,
+                        "targetPort": 61617
+                    }
+                ],
+                "selector": {
+                    "deploymentConfig": "${APPLICATION_NAME}-amq"
+                }
+            },
+            "metadata": {
+                "name": "${APPLICATION_NAME}-amq-ssl",
+                "labels": {
+                    "application": "${APPLICATION_NAME}"
+                },
+                "annotations": {
+                    "description": "The broker's SSL (OpenWire) port."
+                }
+            }
+        },
+        {
+            "kind": "Route",
+            "apiVersion": "v1",
+            "id": "${APPLICATION_NAME}-http",
+            "metadata": {
+                "name": "${APPLICATION_NAME}",
+                "labels": {
+                    "application": "${APPLICATION_NAME}"
+                },
+                "annotations": {
+                    "description": "Route for application's http service."
+                }
+            },
+            "spec": {
+                "host": "${APPLICATION_DOMAIN}",
+                "to": {
+                    "name": "${APPLICATION_NAME}"
+                }
+            }
+        },
+        {
+            "kind": "Route",
+            "apiVersion": "v1",
+            "id": "${APPLICATION_NAME}-https",
+            "metadata": {
+                "name": "secure-${APPLICATION_NAME}",
+                "labels": {
+                    "application": "${APPLICATION_NAME}"
+                },
+                "annotations": {
+                    "description": "Route for application's https service."
+                }
+            },
+            "spec": {
+                "host": "${APPLICATION_DOMAIN}",
+                "to": {
+                    "name": "secure-${APPLICATION_NAME}"
+                },
+                "tls": {
+                    "termination": "passthrough"
+                }
+            }
+        },
+        {
+            "kind": "ImageStream",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "${APPLICATION_NAME}",
+                "labels": {
+                    "application": "${APPLICATION_NAME}"
+                }
+            }
+        },
+        {
+            "kind": "BuildConfig",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "${APPLICATION_NAME}",
+                "labels": {
+                    "application": "${APPLICATION_NAME}"
+                }
+            },
+            "spec": {
+                "source": {
+                    "type": "Git",
+                    "git": {
+                        "uri": "${SOURCE_REPOSITORY_URI}",
+                        "ref": "${SOURCE_REPOSITORY_REF}"
+                    },
+                    "contextDir": "${CONTEXT_DIR}"
+                },
+                "strategy": {
+                    "type": "Source",
+                    "sourceStrategy": {
+                        "from": {
+                            "kind": "ImageStreamTag",
+                            "namespace": "${IMAGE_STREAM_NAMESPACE}",
+                            "name": "jboss-eap6-openshift:${EAP_RELEASE}"
+                        }
+                    }
+                },
+                "output": {
+                    "to": {
+                        "kind": "ImageStreamTag",
+                        "name": "${APPLICATION_NAME}:latest"
+                    }
+                },
+                "triggers": [
+                    {
+                        "type": "GitHub",
+                        "github": {
+                            "secret": "${GITHUB_WEBHOOK_SECRET}"
+                        }
+                    },
+                    {
+                        "type": "Generic",
+                        "generic": {
+                            "secret": "${GENERIC_WEBHOOK_SECRET}"
+                        }
+                    },
+                    {
+                        "type": "ImageChange",
+                        "imageChange": {}
+                    },
+                    {
+                        "type": "ConfigChange"
+                    }
+                ]
+            }
+        },
+        {
+            "kind": "DeploymentConfig",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "${APPLICATION_NAME}",
+                "labels": {
+                    "application": "${APPLICATION_NAME}"
+                }
+            },
+            "spec": {
+                "strategy": {
+                    "type": "Recreate"
+                },
+                "triggers": [
+                    {
+                        "type": "ImageChange",
+                        "imageChangeParams": {
+                            "automatic": true,
+                            "containerNames": [
+                                "${APPLICATION_NAME}"
+                            ],
+                            "from": {
+                                "kind": "ImageStream",
+                                "name": "${APPLICATION_NAME}"
+                            }
+                        }
+                    }
+                ],
+                "replicas": 1,
+                "selector": {
+                    "deploymentConfig": "${APPLICATION_NAME}"
+                },
+                "template": {
+                    "metadata": {
+                        "name": "${APPLICATION_NAME}",
+                        "labels": {
+                            "deploymentConfig": "${APPLICATION_NAME}",
+                            "application": "${APPLICATION_NAME}"
+                        }
+                    },
+                    "spec": {
+                        "serviceAccount": "eap-service-account",
+                        "containers": [
+                            {
+                                "name": "${APPLICATION_NAME}",
+                                "image": "${APPLICATION_NAME}",
+                                "imagePullPolicy": "Always",
+                                "volumeMounts": [
+                                    {
+                                        "name": "eap-keystore-volume",
+                                        "mountPath": "/etc/eap-secret-volume",
+                                        "readOnly": true
+                                    }
+                                ],
+                                "readinessProbe": {
+                                    "exec": {
+                                        "command": [
+                                            "/bin/bash",
+                                            "-c",
+                                            "/opt/eap/bin/readinessProbe.sh"
+                                        ]
+                                    }
+                                },
+                                "ports": [
+                                    {
+                                        "name": "http",
+                                        "containerPort": 8080,
+                                        "protocol": "TCP"
+                                    },
+                                    {
+                                        "name": "https",
+                                        "containerPort": 8443,
+                                        "protocol": "TCP"
+                                    },
+                                    {
+                                        "name": "ping",
+                                        "containerPort": 8888,
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "env": [
+                                    {
+                                        "name": "MQ_SERVICE_PREFIX_MAPPING",
+                                        "value": "${APPLICATION_NAME}-amq=MQ"
+                                    },
+                                    {
+                                        "name": "MQ_JNDI",
+                                        "value": "${MQ_JNDI}"
+                                    },
+                                    {
+                                        "name": "MQ_USERNAME",
+                                        "value": "${MQ_USERNAME}"
+                                    },
+                                    {
+                                        "name": "MQ_PASSWORD",
+                                        "value": "${MQ_PASSWORD}"
+                                    },
+                                    {
+                                        "name": "MQ_PROTOCOL",
+                                        "value": "ssl"
+                                    },
+                                    {
+                                        "name": "MQ_QUEUES",
+                                        "value": "${MQ_QUEUES}"
+                                    },
+                                    {
+                                        "name": "MQ_TOPICS",
+                                        "value": "${MQ_TOPICS}"
+                                    },
+                                    {
+                                        "name": "MQ_KEYSTORE_TRUSTSTORE_DIR",
+                                        "value": "/etc/eap-secret-volume"
+                                    },
+                                    {
+                                        "name": "MQ_KEYSTORE",
+                                        "value": "${MQ_RA_KEYSTORE}"
+                                    },
+                                    {
+                                        "name": "MQ_KEYSTORE_PASSWORD",
+                                        "value": "${MQ_RA_KEYSTORE_PASSWORD}"
+                                    },
+                                    {
+                                        "name": "MQ_TRUSTSTORE",
+                                        "value": "${MQ_RA_TRUSTSTORE}"
+                                    },
+                                    {
+                                        "name": "OPENSHIFT_KUBE_PING_LABELS",
+                                        "value": "application=${APPLICATION_NAME}"
+                                    },
+                                    {
+                                        "name": "OPENSHIFT_KUBE_PING_NAMESPACE",
+                                        "valueFrom": {
+                                            "fieldRef": {
+                                                "fieldPath": "metadata.namespace"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "name": "EAP_HTTPS_KEYSTORE_DIR",
+                                        "value": "/etc/eap-secret-volume"
+                                    },
+                                    {
+                                        "name": "EAP_HTTPS_KEYSTORE",
+                                        "value": "${EAP_HTTPS_KEYSTORE}"
+                                    },
+                                    {
+                                        "name": "EAP_HTTPS_NAME",
+                                        "value": "${EAP_HTTPS_NAME}"
+                                    },
+                                    {
+                                        "name": "EAP_HTTPS_PASSWORD",
+                                        "value": "${EAP_HTTPS_PASSWORD}"
+                                    }
+                                ]
+                            }
+                        ],
+                        "volumes": [
+                            {
+                                "name": "eap-keystore-volume",
+                                "secret": {
+                                    "secretName": "${EAP_HTTPS_SECRET}"
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "kind": "DeploymentConfig",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "${APPLICATION_NAME}-amq",
+                "labels": {
+                    "application": "${APPLICATION_NAME}"
+                }
+            },
+            "spec": {
+                "strategy": {
+                    "type": "Recreate"
+                },
+                "triggers": [
+                    {
+                        "type": "ImageChange",
+                        "imageChangeParams": {
+                            "automatic": true,
+                            "containerNames": [
+                                "${APPLICATION_NAME}-amq"
+                            ],
+                            "from": {
+                                "kind": "ImageStreamTag",
+                                "namespace": "${IMAGE_STREAM_NAMESPACE}",
+                                "name": "jboss-amq-6:${AMQ_RELEASE}"
+                            }
+                        }
+                    }
+                ],
+                "replicas": 1,
+                "selector": {
+                    "deploymentConfig": "${APPLICATION_NAME}-amq"
+                },
+                "template": {
+                    "metadata": {
+                        "name": "${APPLICATION_NAME}-amq",
+                        "labels": {
+                            "deploymentConfig": "${APPLICATION_NAME}-amq",
+                            "application": "${APPLICATION_NAME}"
+                        }
+                    },
+                    "spec": {
+                        "serviceAccount": "amq-service-account",
+                        "containers": [
+                            {
+                                "name": "${APPLICATION_NAME}-amq",
+                                "image": "jboss-amq-6",
+                                "imagePullPolicy": "Always",
+                                "volumeMounts": [
+                                    {
+                                        "name": "broker-secret-volume",
+                                        "mountPath": "/etc/amq-secret-volume",
+                                        "readOnly": true
+                                    }
+                                ],
+                                "readinessProbe": {
+                                    "exec": {
+                                        "command": [
+                                            "/bin/bash",
+                                            "-c",
+                                            "curl -s -L -u ${AMQ_ADMIN_USERNAME}:${AMQ_ADMIN_PASSWORD} 'http://localhost:8161/hawtio/jolokia/read/org.apache.activemq:type=Broker,brokerName=*,service=Health/CurrentStatus' | grep -q '\"CurrentStatus\" *: *\"Good\"'"
+                                        ]
+                                    }
+                                },
+                                "ports": [
+                                    {
+                                        "name": "tcp-ssl",
+                                        "containerPort": 61617,
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "env": [
+                                    {
+                                        "name": "AMQ_USER",
+                                        "value": "${MQ_USERNAME}"
+                                    },
+                                    {
+                                        "name": "AMQ_PASSWORD",
+                                        "value": "${MQ_PASSWORD}"
+                                    },
+                                    {
+                                        "name": "AMQ_TRANSPORTS",
+                                        "value": "openwire"
+                                    },
+                                    {
+                                        "name": "AMQ_QUEUES",
+                                        "value": "${MQ_QUEUES}"
+                                    },
+                                    {
+                                        "name": "AMQ_TOPICS",
+                                        "value": "${MQ_TOPICS}"
+                                    },
+                                    {
+                                        "name": "AMQ_ADMIN_USERNAME",
+                                        "value": "${AMQ_ADMIN_USERNAME}"
+                                    },
+                                    {
+                                        "name": "AMQ_ADMIN_PASSWORD",
+                                        "value": "${AMQ_ADMIN_PASSWORD}"
+                                    },
+                                    {
+                                        "name": "AMQ_KEYSTORE_TRUSTSTORE_DIR",
+                                        "value": "/etc/amq-secret-volume"
+                                    },
+                                    {
+                                        "name": "AMQ_KEYSTORE",
+                                        "value": "${MQ_KEYSTORE}"
+                                    },
+                                    {
+                                        "name": "AMQ_KEYSTORE_PASSWORD",
+                                        "value": "${MQ_KEYSTORE_PASSWORD}"
+                                    },
+                                    {
+                                        "name": "AMQ_TRUSTSTORE",
+                                        "value": "${MQ_TRUSTSTORE}"
+                                    },
+                                    {
+                                        "name": "AMQ_TRUSTSTORE_PASSWORD",
+                                        "value": "${MQ_TRUSTSTORE_PASSWORD}"
+                                    }
+                                ]
+                            }
+                        ],
+                        "volumes": [
+                            {
+                                "name": "broker-secret-volume",
+                                "secret": {
+                                    "secretName": "${MQ_SECRET}"
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    ]
+}
