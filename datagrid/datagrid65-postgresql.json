@@ -34,6 +34,24 @@
             "required": false
         },
         {
+            "description": "Security domain name for user authentication",
+            "name": "SECDOMAIN_NAME",
+            "value": "jdg-openshift",
+            "required": false
+        },
+        {
+            "description": "User name for JDG user. If left empty, it will be generated.",
+            "name": "USERNAME",
+            "value": "",
+            "required": false
+        },
+        {
+            "description": "Password for JDG user. If left empty, it will be generated.",
+            "name": "PASSWORD",
+            "value": "",
+            "required": false
+        },
+        {
             "description": "The name of the secret containing the keystore file",
             "name": "HTTPS_SECRET",
             "value": "datagrid-app-secret",
@@ -449,6 +467,18 @@
                                     }
                                 ],
                                 "env": [
+                                    {
+                                        "name": "USERNAME",
+                                        "value": "${USERNAME}"
+                                    },
+                                    {
+                                        "name": "PASSWORD",
+                                        "value": "${PASSWORD}"
+                                    },
+                                    {
+                                        "name": "SECDOMAIN_NAME",
+                                        "value": "${SECDOMAIN_NAME}"
+                                    },
                                     {
                                         "name": "HTTPS_KEYSTORE_DIR",
                                         "value": "/etc/datagrid-secret-volume"

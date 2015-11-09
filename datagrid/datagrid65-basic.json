@@ -28,6 +28,24 @@
             "required": false
         },
         {
+            "description": "Security domain name for user authentication",
+            "name": "SECDOMAIN_NAME",
+            "value": "jdg-openshift",
+            "required": false
+        },
+        {
+            "description": "User name for JDG user.",
+            "name": "USERNAME",
+            "value": "",
+            "required": false
+        },
+        {
+            "description": "Password for JDG user.",
+            "name": "PASSWORD",
+            "value": "",
+            "required": false
+        },
+        {
             "description": "Namespace in which the ImageStreams for Red Hat Middleware images are installed. These ImageStreams are normally installed in the openshift namespace. You should only need to modify this if you've installed the ImageStreams in a different namespace/project.",
             "name": "IMAGE_STREAM_NAMESPACE",
             "value": "openshift",
@@ -261,6 +279,18 @@
                                     }
                                 ],
                                 "env": [
+                                    {
+                                        "name": "USERNAME",
+                                        "value": "${USERNAME}"
+                                    },
+                                    {
+                                        "name": "PASSWORD",
+                                        "value": "${PASSWORD}"
+                                    },
+                                    {
+                                        "name": "SECDOMAIN_NAME",
+                                        "value": "${SECDOMAIN_NAME}"
+                                    },
                                     {
                                         "name": "OPENSHIFT_KUBE_PING_LABELS",
                                         "value": "application=${APPLICATION_NAME}"
