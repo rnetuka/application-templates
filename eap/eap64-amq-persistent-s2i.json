@@ -401,6 +401,11 @@
                                         "name": "eap-keystore-volume",
                                         "mountPath": "/etc/eap-secret-volume",
                                         "readOnly": true
+                                    },
+                                    {
+                                        "name": "eap-jgroups-keystore-volume",
+                                        "mountPath": "/etc/jgroups-encrypt-secret-volume",
+                                        "readOnly": true
                                     }
                                 ],
                                 "livenessProbe": {
@@ -501,6 +506,10 @@
                                         "value": "${HTTPS_PASSWORD}"
                                     },
                                     {
+                                        "name": "JGROUPS_ENCRYPT_KEYSTORE_DIR",
+                                        "value": "/etc/jgroups-encrypt-secret-volume"
+                                    },
+                                    {
                                         "name": "JGROUPS_CLUSTER_PASSWORD",
                                         "value": "${JGROUPS_CLUSTER_PASSWORD}"
                                     }
@@ -512,6 +521,12 @@
                                 "name": "eap-keystore-volume",
                                 "secret": {
                                     "secretName": "${HTTPS_SECRET}"
+                                }
+                            },
+                            {
+                                "name": "eap-jgroups-keystore-volume",
+                                "secret": {
+                                    "secretName": "${JGROUPS_ENCRYPT_SECRET}"
                                 }
                             }
                         ]
